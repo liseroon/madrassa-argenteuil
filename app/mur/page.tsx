@@ -182,7 +182,7 @@ export default function MurPage() {
               <img src={post.file_url} alt="fichier joint" className="rounded-lg max-h-64 object-cover mb-3 w-full" />
             )}
             {post.file_url && post.file_type === 'document' && (
-              
+              <a
                 href={post.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
