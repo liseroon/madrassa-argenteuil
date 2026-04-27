@@ -20,8 +20,13 @@ export default function InscriptionPage() {
     if (error) {
       setMessage('Erreur : ' + error.message)
     } else {
-      router.push('/attente')
-    }
+  await fetch('/api/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to: email, type: 'inscription', nom })
+  })
+  router.push('/attente')
+}
   }
 
   return (
