@@ -114,7 +114,12 @@ export default function MurPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-green-700 mb-6">Mur de classe</h1>
+         <div className="flex justify-between items-center mb-6">
+      <h1 className="text-2xl font-bold text-green-700">Mur de classe</h1>
+      <a href="/messages" className="bg-[#1a3a5c] text-white px-4 py-2 rounded-full text-sm hover:bg-orange-500 transition">
+        💬 Messages
+      </a>
+    </div>
 
         <div className="bg-white rounded-xl shadow p-4 mb-6">
           <textarea
