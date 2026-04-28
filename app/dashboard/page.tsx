@@ -19,10 +19,15 @@ export default function DashboardAdmin() {
     setLoading(false)
   }
 
-  const validerUser = async (id: string) => {
-    await supabase.from('users').update({ statut: 'valide' }).eq('id', id)
-    fetchUsers()
-  }
+  const validerUser = async (id: string, email: string, nom: string) => {
+  await supabase.from('users').update({ statut: 'valide' }).eq('id', id)
+  await fetch('/api/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to: email, type: 'validation', nom })
+  })
+  fetchUsers()
+}
 
   const refuserUser = async (id: string) => {
     await supabase.from('users').update({ statut: 'refuse' }).eq('id', id)
@@ -56,7 +61,7 @@ export default function DashboardAdmin() {
               <p className="text-xs text-gray-400 mb-4 capitalize">Rôle : {user.role}</p>
               <div className="flex gap-3">
                 <button
-                  onClick={() => validerUser(user.id)}
+                  onClick={() => validerUser(user.id, user.email, user.nom)}
                   className="flex-1 py-2 rounded-full text-white text-sm font-bold"
                   style={{backgroundColor: '#4a9b8e'}}
                 >
