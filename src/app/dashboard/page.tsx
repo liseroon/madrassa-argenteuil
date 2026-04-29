@@ -30,14 +30,14 @@ export default function DashboardAdmin() {
   }
 
   const fetchClasses = async () => {
-    const { data } = await supabase.from('CLASSES').select('*').order('created_at', { ascending: false })
+    const { data } = await supabase.from('classes').select('*').order('created_at', { ascending: false })
     setClasses(data || [])
   }
 
   const creerClasse = async () => {
     if (!nomClasse.trim()) return
     const slug = nomClasse.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-    await supabase.from('CLASSES').insert({ nom: nomClasse.trim(), slug })
+    await supabase.from('classes').insert({ nom: nomClasse.trim(), slug })
     setNomClasse('')
     fetchClasses()
   }
@@ -76,8 +76,7 @@ export default function DashboardAdmin() {
       </div>
 
       <div className="p-6">
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-white rounded-xl p-4 text-center shadow">
             <p className="text-2xl font-bold" style={{color: '#2d4a3e'}}>{classes.length}</p>
             <p className="text-xs text-gray-500">Classes</p>
@@ -88,7 +87,6 @@ export default function DashboardAdmin() {
           </div>
         </div>
 
-        {/* Créer une classe */}
         <div className="bg-white rounded-xl p-4 mb-6 shadow">
           <h2 className="text-lg font-bold text-gray-700 mb-3">Créer une classe</h2>
           <div className="flex gap-2">
@@ -108,7 +106,6 @@ export default function DashboardAdmin() {
           </div>
         </div>
 
-        {/* Liens par classe */}
         {classes.length > 0 && (
           <div className="bg-white rounded-xl p-4 mb-6 shadow">
             <h2 className="text-lg font-bold text-gray-700 mb-3">Liens d'inscription par classe</h2>
@@ -131,7 +128,6 @@ export default function DashboardAdmin() {
           </div>
         )}
 
-        {/* Inscriptions en attente */}
         <h2 className="text-lg font-bold text-gray-700 mb-4">
           Inscriptions en attente ({users.length})
         </h2>
