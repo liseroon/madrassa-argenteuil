@@ -1,7 +1,8 @@
 'use client'
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '../../../lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 export default function DashboardAdmin() {
   const [users, setUsers] = useState<any[]>([])
@@ -10,6 +11,11 @@ export default function DashboardAdmin() {
   const [nomClasse, setNomClasse] = useState('')
   const [copied, setCopied] = useState<string | null>(null)
   const router = useRouter()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   useEffect(() => {
     checkAdminAndFetch()
@@ -34,132 +40,138 @@ export default function DashboardAdmin() {
     setClasses(data || [])
   }
 
-  const creerClasse = async () => {
-    if (!nomClasse.trim()) return
-    const slug = nomClasse.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-    await supabase.from('classes').insert({ nom: nomClasse.trim(), slug })
-    setNomClasse('')
-    fetchClasses()
-  }
-
-  const copierLien = (slug: string) => {
-    navigator.clipboard.writeText(`https://intrascool.fr/inscription?classe=${slug}`)
-    setCopied(slug)
-    setTimeout(() => setCopied(null), 2000)
-  }
-
-  const validerUser = async (id: string, email: string, nom: string) => {
-    await supabase.from('users').update({ statut: 'valide' }).eq('id', id)
-    await fetch('/api/email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to: email, type: 'validation', nom })
-    })
+  const validerUser = async (id: string) => {
+    await supabase.from('users').update({ statut: 'actif' }).eq('id', id)
     fetchUsers()
   }
 
   const refuserUser = async (id: string) => {
-    await supabase.from('users').update({ statut: 'refuse' }).eq('id', id)
+    await supabase.from('users').delete().eq('id', id)
     fetchUsers()
   }
 
+  const creerClasse = async () => {
+    if (!nomClasse.trim()) return
+    const slug = nomClasse.toLowerCase().replace(/\s+/g, '-')
+    await supabase.from('classes').insert({ nom: nomClasse, slug })
+    setNomClasse('')
+    fetchClasses()
+  }
+
+  const copyLink = (slug: string) => {
+    navigator.clipboard.writeText(`intrascool.fr/inscription?classe=${slug}`)
+    setCopied(slug)
+    setTimeout(() => setCopied(null), 2000)
+  }
+
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#f5f5f5'}}>
-      <div className="p-6" style={{backgroundColor: '#2d4a3e'}}>
-        <div className="flex items-center gap-4">
-          <img src="/logo.jpg.jpg" className="w-12 h-12 rounded-full border-2" />
+    <div className="min-h-screen bg-[#f5f0e8]">
+      <div className="bg-[#1a3a5c] text-white p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center font-bold text-lg">M</div>
           <div>
-            <h1 className="text-white text-xl font-bold">Dashboard Admin</h1>
-            <p className="text-yellow-400 text-xs">Madrassa Argenteuil</p>
+            <p className="font-bold text-lg">Dashboard Admin</p>
+            <p className="text-xs text-orange-300">Madrassa Argenteuil</p>
           </div>
         </div>
+        <button
+          onClick={handleLogout}
+          className="text-xs text-white bg-red-500 px-3 py-2 rounded-lg hover:bg-red-600 transition"
+        >
+          Déconnexion
+        </button>
       </div>
 
-      <div className="p-6">
-        <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="p-4 max-w-2xl mx-auto">
+
+        <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-white rounded-xl p-4 text-center shadow">
-            <p className="text-2xl font-bold" style={{color: '#2d4a3e'}}>{classes.length}</p>
-            <p className="text-xs text-gray-500">Classes</p>
+            <p className="text-3xl font-bold text-[#1a3a5c]">{classes.length}</p>
+            <p className="text-sm text-gray-500">Classes</p>
           </div>
           <div className="bg-white rounded-xl p-4 text-center shadow">
-            <p className="text-2xl font-bold" style={{color: '#2d4a3e'}}>{users.length}</p>
-            <p className="text-xs text-gray-500">En attente</p>
+            <p className="text-3xl font-bold text-orange-500">{users.length}</p>
+            <p className="text-sm text-gray-500">En attente</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 mb-6 shadow">
-          <h2 className="text-lg font-bold text-gray-700 mb-3">Créer une classe</h2>
+        <div className="bg-white rounded-xl shadow p-4 mb-6">
+          <h2 className="font-bold text-[#1a3a5c] mb-3">Créer une classe</h2>
           <div className="flex gap-2">
             <input
+              className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a3a5c]"
+              placeholder="Ex: Coran-Niveau1"
               value={nomClasse}
               onChange={e => setNomClasse(e.target.value)}
-              placeholder="Ex: Coran-Niveau1"
-              className="flex-1 border rounded-lg px-3 py-2 text-sm"
+              onKeyDown={e => e.key === 'Enter' && creerClasse()}
             />
             <button
               onClick={creerClasse}
-              className="px-4 py-2 rounded-lg text-white text-sm font-bold"
-              style={{backgroundColor: '#2d4a3e'}}
+              className="bg-[#1a3a5c] text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-500 transition"
             >
               Créer
             </button>
           </div>
         </div>
 
-        {classes.length > 0 && (
-          <div className="bg-white rounded-xl p-4 mb-6 shadow">
-            <h2 className="text-lg font-bold text-gray-700 mb-3">Liens d'inscription par classe</h2>
-            <p className="text-xs text-gray-400 mb-4">Partagez ces liens aux parents pour s'inscrire à la bonne classe.</p>
-            {classes.map(classe => (
-              <div key={classe.id} className="flex items-center justify-between mb-3 p-3 bg-gray-50 rounded-lg">
+        <div className="bg-white rounded-xl shadow p-4 mb-6">
+          <h2 className="font-bold text-[#1a3a5c] mb-3">Liens d'inscription par classe</h2>
+          <p className="text-xs text-gray-400 mb-3">Partagez ces liens aux parents pour s'inscrire à la bonne classe.</p>
+          {classes.map(classe => (
+            <div key={classe.id} className="mb-4 border-b pb-3">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-bold text-sm text-gray-700">{classe.nom}</p>
+                  <p className="font-semibold text-sm">{classe.nom}</p>
                   <p className="text-xs text-blue-500">intrascool.fr/inscription?classe={classe.slug}</p>
                 </div>
-                <button
-                  onClick={() => copierLien(classe.slug)}
-                  className="px-3 py-1 rounded-lg text-white text-xs font-bold"
-                  style={{backgroundColor: copied === classe.slug ? '#4a9b8e' : '#2d4a3e'}}
-                >
-                  {copied === classe.slug ? '✅ Copié' : 'Copier'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => copyLink(classe.slug)}
+                    className="text-xs bg-gray-100 px-3 py-1 rounded-lg hover:bg-gray-200 transition"
+                  >
+                    {copied === classe.slug ? '✓ Copié' : 'Copier'}
+                  </button>
+                  <a
+                    href={`/mur/${classe.id}`}
+                    className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-lg hover:bg-green-200 transition"
+                  >
+                    Mur
+                  </a>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
 
-        <h2 className="text-lg font-bold text-gray-700 mb-4">
-          Inscriptions en attente ({users.length})
-        </h2>
-        {loading ? (
-          <p className="text-gray-500">Chargement...</p>
-        ) : users.length === 0 ? (
-          <p className="text-gray-500">Aucune inscription en attente</p>
-        ) : (
-          users.map(user => (
-            <div key={user.id} className="bg-white rounded-xl p-4 mb-4 shadow">
-              <p className="font-bold text-gray-800">{user.nom}</p>
-              <p className="text-gray-500 text-sm">{user.email}</p>
-              <p className="text-xs text-gray-400 mb-4 capitalize">Rôle : {user.role}</p>
-              <div className="flex gap-3">
+        <div className="bg-white rounded-xl shadow p-4">
+          <h2 className="font-bold text-[#1a3a5c] mb-3">Inscriptions en attente ({users.length})</h2>
+          {loading && <p className="text-sm text-gray-400">Chargement...</p>}
+          {users.map(user => (
+            <div key={user.id} className="mb-4 border-b pb-3">
+              <p className="font-semibold text-sm">{user.nom}</p>
+              <p className="text-xs text-gray-500">{user.email}</p>
+              <p className="text-xs text-gray-400">Rôle : {user.role}</p>
+              <div className="flex gap-2 mt-2">
                 <button
-                  onClick={() => validerUser(user.id, user.email, user.nom)}
-                  className="flex-1 py-2 rounded-full text-white text-sm font-bold"
-                  style={{backgroundColor: '#4a9b8e'}}
+                  onClick={() => validerUser(user.id)}
+                  className="flex-1 bg-teal-500 text-white py-2 rounded-lg text-sm hover:bg-teal-600 transition"
                 >
-                  ✅ Valider
+                  Valider
                 </button>
                 <button
                   onClick={() => refuserUser(user.id)}
-                  className="flex-1 py-2 rounded-full text-white text-sm font-bold"
-                  style={{backgroundColor: '#e74c3c'}}
+                  className="flex-1 bg-red-400 text-white py-2 rounded-lg text-sm hover:bg-red-500 transition"
                 >
-                  ❌ Refuser
+                  Refuser
                 </button>
               </div>
             </div>
-          ))
-        )}
+          ))}
+          {!loading && users.length === 0 && (
+            <p className="text-sm text-gray-400 text-center py-4">Aucune inscription en attente</p>
+          )}
+        </div>
+
       </div>
     </div>
   )
