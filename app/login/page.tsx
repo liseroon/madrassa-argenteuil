@@ -1,6 +1,7 @@
 'use client'
+
 import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
@@ -21,7 +22,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{backgroundColor: '#2d4a3e'}}>
       <div className="flex flex-col items-center pt-12 pb-8">
-        <img src="/logo.jpg.jpg" className="w-28 h-28 rounded-full mb-4 border-4 border-yellow-600" alt="logo" />
+        <img src="/logo.jpg.jpg" className="w-28 h-28 rounded-full mb-4 border-4 border-orange-400" />
         <h1 className="text-white text-3xl font-serif">Madrassa Argenteuil</h1>
         <p className="text-yellow-400 text-xs tracking-widest mt-1">PORTAIL DE L'ÉTABLISSEMENT</p>
       </div>
@@ -31,25 +32,23 @@ export default function LoginPage() {
         <input
           type="email"
           placeholder="admin@ecole.fr"
-          className="w-full border-b border-gray-300 py-3 mb-6 bg-transparent outline-none"
+          className="w-full border-b border-gray-300 py-3 mb-6 bg-white outline-none text-gray-900 placeholder-gray-400"
           onChange={e => setEmail(e.target.value)}
         />
         <label className="text-xs font-bold text-gray-700 tracking-widest">MOT DE PASSE</label>
         <input
           type="password"
-          className="w-full border-b border-gray-300 py-3 mb-2 bg-transparent outline-none"
+          className="w-full border-b border-gray-300 py-3 mb-2 bg-white outline-none text-gray-900"
           onChange={e => setPassword(e.target.value)}
         />
-        <p className="text-right text-sm text-gray-400 mb-8">Mot de passe oublié ?</p>
         <button
           onClick={handleLogin}
-          className="w-full py-4 rounded-full text-white font-bold mb-6"
-          style={{backgroundColor: '#4a9b8e'}}
+          className="w-full py-4 mt-6 rounded-full text-white font-bold text-sm tracking-widest"
+          style={{backgroundColor: '#2d4a3e'}}
         >
           SE CONNECTER
         </button>
-        <p className="text-center text-gray-400 text-sm mb-4">première fois ?</p>
-        <div className="flex gap-4">
+        <div className="flex gap-3 mt-4">
           <button
             onClick={() => router.push('/inscription')}
             className="flex-1 py-3 border border-gray-300 rounded-full text-sm text-gray-600"
