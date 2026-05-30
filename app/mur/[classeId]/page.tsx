@@ -180,8 +180,8 @@ export default function MurClassePage() {
     fetchComments(postId)
   }
 
-  const isAdmin = userRole === 'admin'
-  const canPost = ['admin', 'enseignant', 'parent'].includes(userRole)
+  const isAdmin = userRole.toLowerCase() === 'admin'
+  const canPost = ['admin', 'moualima', 'parent'].includes(userRole.toLowerCase())
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
