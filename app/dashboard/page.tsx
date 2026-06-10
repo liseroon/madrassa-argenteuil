@@ -4,9 +4,24 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
+interface Classe {
+  id: string
+  nom: string
+  slug: string
+  created_at?: string
+}
+
+interface UserRow {
+  id: string
+  nom: string
+  email: string
+  role: string
+  statut: string
+}
+
 export default function DashboardPage() {
-  const [users, setUsers] = useState<any[]>([])
-  const [classes, setClasses] = useState<any[]>([])
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [classes, setClasses] = useState<Classe[]>([])
   const [loading, setLoading] = useState(true)
   const [nomClasse, setNomClasse] = useState('')
   const [copied, setCopied] = useState<string | null>(null)
@@ -19,11 +34,18 @@ export default function DashboardPage() {
     router.push('/login')
   }
 
-  useEffect(() => {
-    checkUserAndFetch()
-  }, [])
+  const fetchUsers = async () => {
+    const { data } = await supabase.from('users').select('*').eq('statut', 'en_attente')
+    setUsers(data || [])
+    setLoading(false)
+  }
 
-  const checkUserAndFetch = async () => {
+  const fetchClasses = async () => {
+    const { data } = await supabase.from('classes').select('*').order('created_at', { ascending: false })
+    setClasses(data || [])
+  }
+
+  async function checkUserAndFetch() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
@@ -64,16 +86,11 @@ export default function DashboardPage() {
     }
   }
 
-  const fetchUsers = async () => {
-    const { data } = await supabase.from('users').select('*').eq('statut', 'en_attente')
-    setUsers(data || [])
-    setLoading(false)
-  }
-
-  const fetchClasses = async () => {
-    const { data } = await supabase.from('classes').select('*').order('created_at', { ascending: false })
-    setClasses(data || [])
-  }
+  useEffect(() => {
+    // State is only set after awaited auth/data calls, not synchronously on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    checkUserAndFetch()
+  }, [])
 
   const validerUser = async (id: string) => {
     await supabase.from('users').update({ statut: 'actif' }).eq('id', id)
@@ -158,9 +175,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="bg-white rounded-xl shadow p-4 mb-6">
-              <h2 className="font-bold text-[#1a3a5c] mb-3">Liens d'inscription par classe</h2>
-              <p className="text-xs text-gray-400 mb-3">Partagez ces liens aux parents pour s'inscrire a la bonne classe.</p>
-              {classes.map((classe: any) => (
+              <h2 className="font-bold text-[#1a3a5c] mb-3">Liens d&apos;inscription par classe</h2>
+              <p className="text-xs text-gray-400 mb-3">Partagez ces liens aux parents pour s&apos;inscrire a la bonne classe.</p>
+              {classes.map((classe: Classe) => (
                 <div key={classe.id} className="mb-4 border-b pb-3">
                   <div className="flex items-center justify-between">
                     <div>
@@ -189,7 +206,7 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl shadow p-4">
               <h2 className="font-bold text-[#1a3a5c] mb-3">Inscriptions en attente ({users.length})</h2>
               {loading && <p className="text-sm text-gray-400">Chargement...</p>}
-              {users.map((user: any) => (
+              {users.map((user: UserRow) => (
                 <div key={user.id} className="mb-4 border-b pb-3">
                   <p className="font-semibold text-sm">{user.nom}</p>
                   <p className="text-xs text-gray-500">{user.email}</p>
@@ -226,7 +243,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400 text-center py-8">Aucune classe disponible pour le moment.</p>
             ) : (
               <div className="space-y-3">
-                {classes.map((classe: any) => (
+                {classes.map((classe: Classe) => (
                   <a
                     key={classe.id}
                     href={`/mur/${classe.id}`}

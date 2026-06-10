@@ -103,7 +103,7 @@ export default function InscriptionPage() {
           className="w-full py-4 rounded-full text-white font-bold"
           style={{backgroundColor: '#4a9b8e'}}
         >
-          S'INSCRIRE
+          S&apos;INSCRIRE
         </button>
         {message && <p className="text-red-500 mt-4 text-center">{message}</p>}
       </div>

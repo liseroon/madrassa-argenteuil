@@ -55,7 +55,7 @@ export default function LoginPage() {
       <div className="flex flex-col items-center pt-12 pb-8">
         <img src="/logo.jpg.jpg" className="w-28 h-28 rounded-full mb-4 border-4 border-orange-400" />
         <h1 className="text-white text-3xl font-serif">Madrassa Argenteuil</h1>
-        <p className="text-yellow-400 text-xs tracking-widest mt-1">PORTAIL DE L'ETABLISSEMENT</p>
+        <p className="text-yellow-400 text-xs tracking-widest mt-1">PORTAIL DE L&apos;ETABLISSEMENT</p>
       </div>
       <div className="flex-1 bg-gray-50 rounded-t-3xl p-8">
         <p className="text-gray-500 mb-6">Connectez-vous a votre espace</p>
