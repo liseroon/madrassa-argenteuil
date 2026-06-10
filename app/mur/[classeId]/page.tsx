@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 
@@ -344,9 +345,15 @@ export default function MurClassePage() {
               <>
                 {post.contenu && <p className="text-sm text-gray-700 mb-3 whitespace-pre-wrap">{post.contenu}</p>}
                 {post.file_url && post.file_type === 'image' && (
-                  // User-uploaded image of unknown dimensions from Supabase storage
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={post.file_url} alt="fichier joint" className="rounded-lg max-h-64 object-cover mb-3 w-full" />
+                  <div className="relative w-full h-64 mb-3">
+                    <Image
+                      src={post.file_url}
+                      alt="fichier joint"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 672px"
+                      className="rounded-lg object-cover"
+                    />
+                  </div>
                 )}
                 {post.file_url && post.file_type === 'document' && (
                   <a href={post.file_url} target="_blank" rel="noopener noreferrer"
