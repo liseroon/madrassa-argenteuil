@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 interface Profile {
   id: string
-  full_name: string
+  nom: string
   role: string
 }
 
@@ -17,8 +17,8 @@ interface Message {
   destinataire_id: string
   created_at: string
   lu: boolean
-  expediteur: { full_name: string }
-  destinataire: { full_name: string }
+  expediteur: { nom: string }
+  destinataire: { nom: string }
 }
 
 export default function MessagesPage() {
@@ -44,7 +44,7 @@ export default function MessagesPage() {
     if (!user) { router.push('/login'); return }
     setUserId(user.id)
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
@@ -56,8 +56,8 @@ export default function MessagesPage() {
 
   async function fetchProfiles(uid: string, role: string) {
     const { data } = await supabase
-      .from('profiles')
-      .select('id, full_name, role')
+      .from('users')
+      .select('id, nom, role')
       .neq('id', uid)
     if (data) {
       if (role === 'admin') {
@@ -72,7 +72,7 @@ export default function MessagesPage() {
     if (!selectedUser) return
     const { data } = await supabase
       .from('messages')
-      .select('*, expediteur:expediteur_id(full_name), destinataire:destinataire_id(full_name)')
+      .select('*, expediteur:expediteur_id(nom), destinataire:destinataire_id(nom)')
       .or(`and(expediteur_id.eq.${userId},destinataire_id.eq.${selectedUser.id}),and(expediteur_id.eq.${selectedUser.id},destinataire_id.eq.${userId})`)
       .order('created_at', { ascending: true })
     if (data) setMessages(data)
@@ -103,7 +103,7 @@ export default function MessagesPage() {
               onClick={() => setSelectedUser(profile)}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm ${selectedUser?.id === profile.id ? 'bg-green-100 text-green-700 font-semibold' : 'hover:bg-gray-100'}`}
             >
-              <p className="font-medium">{profile.full_name}</p>
+              <p className="font-medium">{profile.nom}</p>
               <p className="text-xs text-gray-400">{profile.role}</p>
             </button>
           ))}
@@ -114,7 +114,7 @@ export default function MessagesPage() {
         {selectedUser ? (
           <>
             <div className="bg-white shadow px-6 py-4">
-              <h3 className="font-semibold text-gray-800">{selectedUser.full_name}</h3>
+              <h3 className="font-semibold text-gray-800">{selectedUser.nom}</h3>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-3">
               {messages.map(msg => (

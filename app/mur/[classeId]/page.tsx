@@ -8,8 +8,8 @@ interface Post {
   id: string
   contenu: string
   created_at: string
-  file_url?: string
-  file_type?: string
+  fichier_url?: string
+  fichier_type?: string
   classe_id: string
   auteur_id: string
   users: { nom: string; role: string }
@@ -97,7 +97,7 @@ export default function MurClassePage() {
 
   async function fetchComments(postId: string) {
     const { data } = await supabase
-      .from('comments')
+      .from('commentaires')
       .select('*, users(nom)')
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
@@ -126,8 +126,8 @@ export default function MurClassePage() {
       contenu: newPost,
       auteur_id: userId,
       classe_id: classeId,
-      file_url: fileData?.url || null,
-      file_type: fileData?.type || null,
+      fichier_url: fileData?.url || null,
+      fichier_type: fileData?.type || null,
     })
     setNewPost('')
     setSelectedFile(null)
@@ -149,8 +149,8 @@ export default function MurClassePage() {
 
   async function handleEditSubmit(post: Post) {
     setUploading(true)
-    let fileUrl = post.file_url
-    let fileType = post.file_type
+    let fileUrl = post.fichier_url
+    let fileType = post.fichier_type
     if (editFile) {
       const uploaded = await uploadFile(editFile)
       if (uploaded) {
@@ -160,7 +160,7 @@ export default function MurClassePage() {
     }
     await supabase
       .from('posts')
-      .update({ contenu: editContent, file_url: fileUrl, file_type: fileType })
+      .update({ contenu: editContent, fichier_url: fileUrl, fichier_type: fileType })
       .eq('id', post.id)
     setEditingPostId(null)
     setEditFile(null)
@@ -171,7 +171,7 @@ export default function MurClassePage() {
   async function handleCommentSubmit(postId: string) {
     const content = newComments[postId]
     if (!content?.trim()) return
-    await supabase.from('comments').insert({
+    await supabase.from('commentaires').insert({
       post_id: postId,
       content,
       user_id: userId,
@@ -338,11 +338,11 @@ export default function MurClassePage() {
             ) : (
               <>
                 {post.contenu && <p className="text-sm text-gray-700 mb-3 whitespace-pre-wrap">{post.contenu}</p>}
-                {post.file_url && post.file_type === 'image' && (
-                  <img src={post.file_url} alt="fichier joint" className="rounded-lg max-h-64 object-cover mb-3 w-full" />
+                {post.fichier_url && post.fichier_type === 'image' && (
+                  <img src={post.fichier_url} alt="fichier joint" className="rounded-lg max-h-64 object-cover mb-3 w-full" />
                 )}
-                {post.file_url && post.file_type === 'document' && (
-                  <a href={post.file_url} target="_blank" rel="noopener noreferrer"
+                {post.fichier_url && post.fichier_type === 'document' && (
+                  <a href={post.fichier_url} target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline mb-3">
                     📄 Voir le document
                   </a>
