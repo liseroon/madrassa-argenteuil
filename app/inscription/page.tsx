@@ -4,35 +4,48 @@ import Image from 'next/image'
 import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
 
+interface Classe {
+  id: string
+  nom: string
+  slug: string
+}
+
 export default function InscriptionPage() {
   const [nom, setNom] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState('parent')
   const [message, setMessage] = useState('')
+  const [classes, setClasses] = useState<Classe[]>([])
   const [classeId, setClasseId] = useState<string | null>(null)
   const [classeNom, setClasseNom] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const classeSlug = params.get('classe')
-    if (classeSlug) {
-      supabase
-        .from('classes')
-        .select('id, nom')
-        .eq('slug', classeSlug)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            setClasseId(data.id)
-            setClasseNom(data.nom)
+    // The classes table is not readable anonymously (RLS), so fetch the public
+    // list via the server route that uses the service-role key.
+    fetch('/api/classes')
+      .then(res => res.json())
+      .then((data: { classes?: Classe[] }) => {
+        const list = data.classes ?? []
+        setClasses(list)
+        const classeSlug = new URLSearchParams(window.location.search).get('classe')
+        if (classeSlug) {
+          const match = list.find(c => c.slug === classeSlug)
+          if (match) {
+            setClasseId(match.id)
+            setClasseNom(match.nom)
           }
-        })
-    }
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const handleInscription = async () => {
+    if (role === 'parent' && !classeId) {
+      setMessage('Veuillez sélectionner une classe.')
+      return
+    }
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -79,6 +92,21 @@ export default function InscriptionPage() {
             Moualima
           </button>
         </div>
+        {role === 'parent' && !classeNom && (
+          <>
+            <label className="text-xs font-bold text-gray-700 tracking-widest">CLASSE</label>
+            <select
+              value={classeId ?? ''}
+              onChange={e => setClasseId(e.target.value || null)}
+              className="w-full border-b border-gray-300 py-3 mb-6 bg-transparent outline-none text-gray-700"
+            >
+              <option value="">Sélectionnez une classe</option>
+              {classes.map(c => (
+                <option key={c.id} value={c.id}>{c.nom}</option>
+              ))}
+            </select>
+          </>
+        )}
         <label className="text-xs font-bold text-gray-700 tracking-widest">NOM COMPLET</label>
         <input
           type="text"
