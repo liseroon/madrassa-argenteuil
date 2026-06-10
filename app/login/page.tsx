@@ -24,7 +24,7 @@ export default function LoginPage() {
 
     let { data: profile } = await supabase
       .from('users')
-      .select('role, statut')
+      .select('role, statut, classe_id')
       .eq('id', authData.user.id)
       .single()
 
@@ -32,20 +32,24 @@ export default function LoginPage() {
       const meta = authData.user.user_metadata
       const role = meta?.role || 'admin'
       const nom = meta?.nom || authData.user.email?.split('@')[0] || 'Admin'
+      const classe_id = meta?.classe_id || null
       await supabase.from('users').insert({
         id: authData.user.id,
         email: authData.user.email,
         nom,
         role,
+        classe_id,
         statut: 'actif',
       })
-      profile = { role, statut: 'actif' }
+      profile = { role, statut: 'actif', classe_id }
     }
 
     setLoading(false)
 
     if (profile.statut === 'en_attente') {
       window.location.href = '/attente'
+    } else if (profile.role === 'parent' && profile.classe_id) {
+      window.location.href = `/mur/${profile.classe_id}`
     } else {
       window.location.href = '/dashboard'
     }
