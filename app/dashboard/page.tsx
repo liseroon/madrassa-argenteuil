@@ -27,13 +27,25 @@ export default function DashboardPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from('users')
       .select('role, nom, statut')
       .eq('id', user.id)
       .single()
 
-    if (!profile) { router.push('/login'); return }
+    if (!profile) {
+      const meta = user.user_metadata
+      const role = meta?.role || 'admin'
+      const nom = meta?.nom || user.email?.split('@')[0] || 'Admin'
+      await supabase.from('users').insert({
+        id: user.id,
+        email: user.email,
+        nom,
+        role,
+        statut: 'actif',
+      })
+      profile = { role, nom, statut: 'actif' }
+    }
 
     if (profile.statut === 'en_attente') {
       router.push('/attente')

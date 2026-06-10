@@ -21,18 +21,27 @@ export default function LoginPage() {
       return
     }
 
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from('users')
       .select('role, statut')
       .eq('id', authData.user.id)
       .single()
 
-    setLoading(false)
-
     if (!profile) {
-      setMessage('Profil introuvable.')
-      return
+      const meta = authData.user.user_metadata
+      const role = meta?.role || 'admin'
+      const nom = meta?.nom || authData.user.email?.split('@')[0] || 'Admin'
+      await supabase.from('users').insert({
+        id: authData.user.id,
+        email: authData.user.email,
+        nom,
+        role,
+        statut: 'actif',
+      })
+      profile = { role, statut: 'actif' }
     }
+
+    setLoading(false)
 
     if (profile.statut === 'en_attente') {
       router.push('/attente')
