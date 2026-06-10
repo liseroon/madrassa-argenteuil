@@ -44,9 +44,9 @@ export default function LoginPage() {
     setLoading(false)
 
     if (profile.statut === 'en_attente') {
-      router.push('/attente')
+      window.location.href = '/attente'
     } else {
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     }
   }
 
