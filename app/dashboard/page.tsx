@@ -17,10 +17,12 @@ interface UserRow {
   email: string
   role: string
   statut: string
+  classe_id?: string | null
 }
 
 export default function DashboardPage() {
   const [users, setUsers] = useState<UserRow[]>([])
+  const [parents, setParents] = useState<UserRow[]>([])
   const [classes, setClasses] = useState<Classe[]>([])
   const [loading, setLoading] = useState(true)
   const [nomClasse, setNomClasse] = useState('')
@@ -43,6 +45,15 @@ export default function DashboardPage() {
   const fetchClasses = async () => {
     const { data } = await supabase.from('classes').select('*').order('created_at', { ascending: false })
     setClasses(data || [])
+  }
+
+  const fetchParents = async () => {
+    const { data } = await supabase
+      .from('users')
+      .select('id, nom, email, role, statut, classe_id')
+      .eq('role', 'parent')
+      .order('nom', { ascending: true })
+    setParents(data || [])
   }
 
   async function checkUserAndFetch() {
@@ -81,6 +92,7 @@ export default function DashboardPage() {
 
     if (profile.role === 'admin') {
       fetchUsers()
+      fetchParents()
     } else {
       setLoading(false)
     }
@@ -96,6 +108,12 @@ export default function DashboardPage() {
   const validerUser = async (id: string) => {
     await supabase.from('users').update({ statut: 'actif' }).eq('id', id)
     fetchUsers()
+    fetchParents()
+  }
+
+  const assignClasse = async (id: string, classeId: string | null) => {
+    await supabase.from('users').update({ classe_id: classeId }).eq('id', id)
+    fetchParents()
   }
 
   const refuserUser = async (id: string) => {
@@ -200,6 +218,35 @@ export default function DashboardPage() {
                       </a>
                     </div>
                   </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-xl shadow p-4 mb-6">
+              <h2 className="font-bold text-[#1a3a5c] mb-3">Affecter une classe aux parents</h2>
+              <p className="text-xs text-gray-400 mb-3">Choisissez la classe de chaque parent.</p>
+              {parents.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-2">Aucun parent inscrit.</p>
+              )}
+              {parents.map((parent: UserRow) => (
+                <div key={parent.id} className="mb-3 border-b pb-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm truncate">{parent.nom}</p>
+                    <p className="text-xs text-gray-500 truncate">{parent.email}</p>
+                    <p className="text-xs text-gray-400">
+                      {parent.statut === 'en_attente' ? 'En attente' : 'Actif'}
+                    </p>
+                  </div>
+                  <select
+                    value={parent.classe_id ?? ''}
+                    onChange={e => assignClasse(parent.id, e.target.value || null)}
+                    className="border rounded-lg px-2 py-1 text-sm shrink-0 focus:outline-none focus:ring-2 focus:ring-[#1a3a5c]"
+                  >
+                    <option value="">— Aucune —</option>
+                    {classes.map((classe: Classe) => (
+                      <option key={classe.id} value={classe.id}>{classe.nom}</option>
+                    ))}
+                  </select>
                 </div>
               ))}
             </div>
