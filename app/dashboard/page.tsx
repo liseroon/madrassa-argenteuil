@@ -90,6 +90,7 @@ export default function DashboardPage() {
     // State is only set after awaited auth/data calls, not synchronously on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     checkUserAndFetch()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const validerUser = async (id: string) => {

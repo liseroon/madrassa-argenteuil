@@ -1,4 +1,5 @@
 'use client'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 export default function AttentePage() {
@@ -7,7 +8,7 @@ export default function AttentePage() {
   return (
     <div className="min-h-screen flex flex-col" style={{backgroundColor: '#2d4a3e'}}>
       <div className="flex flex-col items-center pt-12 pb-8">
-        <img src="/logo.jpg.jpg" className="w-28 h-28 rounded-full mb-4 border-4 border-yellow-600" alt="logo" />
+        <Image src="/logo.jpg.jpg" alt="Logo Madrassa Argenteuil" width={112} height={112} className="w-28 h-28 rounded-full mb-4 border-4 border-yellow-600" />
         <h1 className="text-white text-3xl font-serif">Madrassa Argenteuil</h1>
         <p className="text-yellow-400 text-xs tracking-widest mt-1">PORTAIL DE L&apos;ÉTABLISSEMENT</p>
       </div>

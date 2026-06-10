@@ -55,6 +55,7 @@ export default function MurClassePage() {
   useEffect(() => {
     checkUser()
     fetchClasse()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classeId])
 
   async function checkUser() {
@@ -234,6 +235,8 @@ export default function MurClassePage() {
               )}
             </div>
             {selectedFile?.type.startsWith('image/') && (
+              // next/image cannot render blob: object-URL previews
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={URL.createObjectURL(selectedFile)}
                 alt="preview"
@@ -317,6 +320,8 @@ export default function MurClassePage() {
                   )}
                 </div>
                 {editFile?.type.startsWith('image/') && (
+                  // next/image cannot render blob: object-URL previews
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={URL.createObjectURL(editFile)} alt="preview" className="mt-2 max-h-32 rounded-lg object-cover" />
                 )}
                 <div className="mt-3 flex gap-2">
@@ -339,6 +344,8 @@ export default function MurClassePage() {
               <>
                 {post.contenu && <p className="text-sm text-gray-700 mb-3 whitespace-pre-wrap">{post.contenu}</p>}
                 {post.file_url && post.file_type === 'image' && (
+                  // User-uploaded image of unknown dimensions from Supabase storage
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={post.file_url} alt="fichier joint" className="rounded-lg max-h-64 object-cover mb-3 w-full" />
                 )}
                 {post.file_url && post.file_type === 'document' && (

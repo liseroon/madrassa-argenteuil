@@ -22,7 +22,6 @@ interface Message {
 }
 
 export default function MessagesPage() {
-  const [userRole, setUserRole] = useState('')
   const [userId, setUserId] = useState('')
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null)
@@ -33,10 +32,12 @@ export default function MessagesPage() {
 
   useEffect(() => {
     checkUser()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (selectedUser) fetchMessages()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUser])
 
   async function checkUser() {
@@ -49,7 +50,6 @@ export default function MessagesPage() {
       .eq('id', user.id)
       .single()
     if (profile) {
-      setUserRole(profile.role)
       fetchProfiles(user.id, profile.role)
     }
   }
