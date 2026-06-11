@@ -33,7 +33,9 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    router.push('/login')
+    // Full-page redirect (not router.push) so all client state is cleared and
+    // the proxy re-evaluates the now-removed auth cookie on the next request.
+    window.location.href = '/login'
   }
 
   const fetchUsers = async () => {
