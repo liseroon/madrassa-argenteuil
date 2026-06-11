@@ -44,28 +44,20 @@ export default function MessagesPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
     setUserId(user.id)
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    if (profile) {
-      fetchProfiles(user.id, profile.role)
-    }
+    fetchContacts()
   }
 
-  async function fetchProfiles(uid: string, role: string) {
-    const { data } = await supabase
-      .from('users')
-      .select('id, nom, role')
-      .neq('id', uid)
-    if (data) {
-      if (role === 'admin') {
-        setProfiles(data)
-      } else {
-        setProfiles(data.filter((p: Profile) => p.role === 'admin'))
-      }
-    }
+  async function fetchContacts() {
+    // The users table is not readable by non-admins (RLS), so the contact
+    // directory is resolved server-side and scoped to the caller's role.
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const res = await fetch('/api/contacts', {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    if (!res.ok) return
+    const { contacts } = await res.json()
+    setProfiles(contacts ?? [])
   }
 
   async function fetchMessages() {
