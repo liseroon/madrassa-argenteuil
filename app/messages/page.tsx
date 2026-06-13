@@ -55,7 +55,10 @@ export default function MessagesPage() {
     const res = await fetch('/api/contacts', {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
-    if (!res.ok) return
+    if (!res.ok) {
+      console.error('fetchContacts error', res.status, await res.text())
+      return
+    }
     const { contacts } = await res.json()
     setProfiles(contacts ?? [])
   }

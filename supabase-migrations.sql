@@ -52,3 +52,49 @@ CREATE POLICY "Senders can insert their own messages"
   FOR INSERT
   TO authenticated
   WITH CHECK (expediteur_id = auth.uid());
+
+-- 4. Auto-create public.users row on auth signup so the contacts list is
+--    populated immediately, without waiting for the user's first login.
+--    Also backfills existing auth users who have no public.users row yet.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.users (id, email, nom, role, classe_id, statut)
+  VALUES (
+    new.id,
+    new.email,
+    COALESCE(new.raw_user_meta_data->>'nom', split_part(new.email, '@', 1)),
+    COALESCE(new.raw_user_meta_data->>'role', 'admin'),
+    NULLIF(new.raw_user_meta_data->>'classe_id', '')::uuid,
+    CASE WHEN COALESCE(new.raw_user_meta_data->>'role', 'admin') IN ('parent', 'moualima')
+         THEN 'en_attente'
+         ELSE 'actif'
+    END
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN new;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Backfill: create public.users rows for existing auth users who don't have one.
+INSERT INTO public.users (id, email, nom, role, classe_id, statut)
+SELECT
+  id,
+  email,
+  COALESCE(raw_user_meta_data->>'nom', split_part(email, '@', 1)),
+  COALESCE(raw_user_meta_data->>'role', 'admin'),
+  NULLIF(raw_user_meta_data->>'classe_id', '')::uuid,
+  CASE WHEN COALESCE(raw_user_meta_data->>'role', 'admin') IN ('parent', 'moualima')
+       THEN 'en_attente'
+       ELSE 'actif'
+  END
+FROM auth.users
+ON CONFLICT (id) DO NOTHING;
