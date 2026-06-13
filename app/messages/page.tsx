@@ -44,20 +44,25 @@ export default function MessagesPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
     setUserId(user.id)
-    fetchContacts()
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    fetchContacts(user.id, profile?.role ?? '')
   }
 
-  async function fetchContacts() {
-    // Cookies are sent automatically on same-origin fetch; the createBrowserClient
-    // keeps them fresh via autoRefreshToken so we never send an expired JWT.
-    console.log('[fetchContacts] calling /api/contacts')
-    const res = await fetch('/api/contacts')
-    const text = await res.text()
-    console.log('[fetchContacts] status:', res.status, 'body:', text)
-    if (!res.ok) return
-    const { contacts } = JSON.parse(text)
-    console.log('[fetchContacts] contacts count:', contacts?.length)
-    setProfiles(contacts ?? [])
+  async function fetchContacts(currentUserId: string, currentUserRole: string) {
+    let query = supabase
+      .from('users')
+      .select('id, nom, role')
+      .neq('id', currentUserId)
+      .order('nom', { ascending: true })
+    if (currentUserRole !== 'admin') {
+      query = query.eq('role', 'admin')
+    }
+    const { data, error } = await query
+    if (!error && data) setProfiles(data)
   }
 
   async function fetchMessages() {
