@@ -34,3 +34,21 @@ CREATE POLICY "Allow admin full access"
       AND users.role = 'admin'
     )
   );
+
+-- 3. Messages: recipients must be able to read messages sent to them.
+-- Without this, parents could not see messages sent by the admin.
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Participants can read their messages" ON messages;
+CREATE POLICY "Participants can read their messages"
+  ON messages
+  FOR SELECT
+  TO authenticated
+  USING (expediteur_id = auth.uid() OR destinataire_id = auth.uid());
+
+DROP POLICY IF EXISTS "Senders can insert their own messages" ON messages;
+CREATE POLICY "Senders can insert their own messages"
+  ON messages
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (expediteur_id = auth.uid());
