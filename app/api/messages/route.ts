@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   const admin = serviceClient()
   const { data, error } = await admin
     .from('messages')
-    .select('*, expediteur:expediteur_id(nom), destinataire:destinataire_id(nom)')
+    .select('id, contenu, expediteur_id, destinataire_id, created_at, lu')
     .or(`and(expediteur_id.eq.${user.id},destinataire_id.eq.${otherId}),and(expediteur_id.eq.${otherId},destinataire_id.eq.${user.id})`)
     .order('created_at', { ascending: true })
   if (error) {
