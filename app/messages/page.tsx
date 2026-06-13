@@ -65,32 +65,39 @@ export default function MessagesPage() {
     if (!error && data) setProfiles(data)
   }
 
+  // getUser() refreshes the token if expired; getSession() then returns the
+  // fresh access_token. Using the token explicitly avoids any localStorage/
+  // session-init race in createBrowserClient.
+  async function freshToken(): Promise<string | null> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? null
+  }
+
   async function fetchMessages() {
     if (!selectedUser) return
-    // getUser() validates + refreshes the session — ensures auth.uid() is set in RLS
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data, error } = await supabase
-      .from('messages')
-      .select('id, contenu, expediteur_id, destinataire_id, created_at, lu')
-      .or(`and(expediteur_id.eq.${user.id},destinataire_id.eq.${selectedUser.id}),and(expediteur_id.eq.${selectedUser.id},destinataire_id.eq.${user.id})`)
-      .order('created_at', { ascending: true })
-    if (error) console.error('[fetchMessages]', error.message)
-    if (!error && data) setMessages(data)
+    const token = await freshToken()
+    if (!token) return
+    const res = await fetch(`/api/messages?with=${selectedUser.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) { console.error('[fetchMessages]', res.status, await res.text()); return }
+    const { messages: msgs } = await res.json()
+    setMessages(msgs ?? [])
   }
 
   async function sendMessage() {
     if (!newMessage.trim() || !selectedUser) return
     setSending(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { error } = await supabase.from('messages').insert({
-        contenu: newMessage,
-        expediteur_id: user.id,
-        destinataire_id: selectedUser.id,
-        lu: false,
+    const token = await freshToken()
+    if (token) {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ contenu: newMessage, destinataire_id: selectedUser.id }),
       })
-      if (error) { console.error('[sendMessage]', error.message); setSending(false); return }
+      if (!res.ok) { console.error('[sendMessage]', res.status, await res.text()); setSending(false); return }
     }
     setNewMessage('')
     setSending(false)
