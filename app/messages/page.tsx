@@ -48,18 +48,15 @@ export default function MessagesPage() {
   }
 
   async function fetchContacts() {
-    // The users table is not readable by non-admins (RLS), so the contact
-    // directory is resolved server-side and scoped to the caller's role.
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-    const res = await fetch('/api/contacts', {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    })
-    if (!res.ok) {
-      console.error('fetchContacts error', res.status, await res.text())
-      return
-    }
-    const { contacts } = await res.json()
+    // Cookies are sent automatically on same-origin fetch; the createBrowserClient
+    // keeps them fresh via autoRefreshToken so we never send an expired JWT.
+    console.log('[fetchContacts] calling /api/contacts')
+    const res = await fetch('/api/contacts')
+    const text = await res.text()
+    console.log('[fetchContacts] status:', res.status, 'body:', text)
+    if (!res.ok) return
+    const { contacts } = JSON.parse(text)
+    console.log('[fetchContacts] contacts count:', contacts?.length)
     setProfiles(contacts ?? [])
   }
 
