@@ -66,24 +66,32 @@ export default function MessagesPage() {
   }
 
   async function fetchMessages() {
-    if (!selectedUser || !userId) return
+    if (!selectedUser) return
+    // getUser() validates + refreshes the session — ensures auth.uid() is set in RLS
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
     const { data, error } = await supabase
       .from('messages')
-      .select('*, expediteur:expediteur_id(nom), destinataire:destinataire_id(nom)')
-      .or(`and(expediteur_id.eq.${userId},destinataire_id.eq.${selectedUser.id}),and(expediteur_id.eq.${selectedUser.id},destinataire_id.eq.${userId})`)
+      .select('id, contenu, expediteur_id, destinataire_id, created_at, lu')
+      .or(`and(expediteur_id.eq.${user.id},destinataire_id.eq.${selectedUser.id}),and(expediteur_id.eq.${selectedUser.id},destinataire_id.eq.${user.id})`)
       .order('created_at', { ascending: true })
+    if (error) console.error('[fetchMessages]', error.message)
     if (!error && data) setMessages(data)
   }
 
   async function sendMessage() {
-    if (!newMessage.trim() || !selectedUser || !userId) return
+    if (!newMessage.trim() || !selectedUser) return
     setSending(true)
-    await supabase.from('messages').insert({
-      contenu: newMessage,
-      expediteur_id: userId,
-      destinataire_id: selectedUser.id,
-      lu: false,
-    })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { error } = await supabase.from('messages').insert({
+        contenu: newMessage,
+        expediteur_id: user.id,
+        destinataire_id: selectedUser.id,
+        lu: false,
+      })
+      if (error) { console.error('[sendMessage]', error.message); setSending(false); return }
+    }
     setNewMessage('')
     setSending(false)
     fetchMessages()
