@@ -66,33 +66,24 @@ export default function MessagesPage() {
   }
 
   async function fetchMessages() {
-    if (!selectedUser) return
-    // Like the contacts, the conversation is resolved server-side: RLS on the
-    // messages table hides admin-sent rows from parents when queried directly.
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-    const res = await fetch(`/api/messages?with=${selectedUser.id}`, {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    })
-    if (!res.ok) return
-    const { messages } = await res.json()
-    setMessages(messages ?? [])
+    if (!selectedUser || !userId) return
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*, expediteur:expediteur_id(nom), destinataire:destinataire_id(nom)')
+      .or(`and(expediteur_id.eq.${userId},destinataire_id.eq.${selectedUser.id}),and(expediteur_id.eq.${selectedUser.id},destinataire_id.eq.${userId})`)
+      .order('created_at', { ascending: true })
+    if (!error && data) setMessages(data)
   }
 
   async function sendMessage() {
-    if (!newMessage.trim() || !selectedUser) return
+    if (!newMessage.trim() || !selectedUser || !userId) return
     setSending(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
-      await fetch('/api/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ contenu: newMessage, destinataire_id: selectedUser.id }),
-      })
-    }
+    await supabase.from('messages').insert({
+      contenu: newMessage,
+      expediteur_id: userId,
+      destinataire_id: selectedUser.id,
+      lu: false,
+    })
     setNewMessage('')
     setSending(false)
     fetchMessages()
