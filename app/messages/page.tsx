@@ -62,7 +62,29 @@ export default function MessagesPage() {
       query = query.eq('role', 'admin')
     }
     const { data, error } = await query
-    if (!error && data) setProfiles(data)
+
+    // Fallback: if RLS blocks direct reads for non-admin, use the server route
+    // which queries with the service-role key.
+    let contacts = (!error && data) ? data : null
+    if (!contacts && currentUserRole !== 'admin') {
+      const token = await freshToken()
+      if (token) {
+        const res = await fetch('/api/contacts', { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const json = await res.json()
+          contacts = json.contacts ?? []
+        }
+      }
+    }
+
+    if (contacts) {
+      setProfiles(contacts)
+      // For parents/moualimas there is exactly one contact (the admin).
+      // Auto-select it so the conversation opens immediately.
+      if (currentUserRole !== 'admin' && contacts.length > 0 && !selectedUser) {
+        setSelectedUser(contacts[0])
+      }
+    }
   }
 
   // getUser() refreshes the token if expired; getSession() then returns the
