@@ -53,34 +53,36 @@ export default function MessagesPage() {
   }
 
   async function fetchContacts(currentUserId: string, currentUserRole: string) {
-    let query = supabase
-      .from('users')
-      .select('id, nom, role')
-      .neq('id', currentUserId)
-      .order('nom', { ascending: true })
-    if (currentUserRole !== 'admin') {
-      query = query.eq('role', 'admin')
-    }
-    const { data, error } = await query
+    let contacts: Profile[] | null = null
 
-    // Fallback: if RLS blocks direct reads for non-admin, use the server route
-    // which queries with the service-role key.
-    let contacts = (!error && data) ? data : null
-    if (!contacts && currentUserRole !== 'admin') {
+    if (currentUserRole === 'admin') {
+      // L'admin peut lire toute la table users (autorise par le RLS).
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, nom, role')
+        .neq('id', currentUserId)
+        .order('nom', { ascending: true })
+      if (!error) contacts = data ?? []
+    } else {
+      // Les parents/moualimas n'ont PAS le droit de lire la table users
+      // (le RLS renvoie un tableau vide, pas une erreur). On passe donc
+      // toujours par la route serveur qui utilise la cle service-role.
       const token = await freshToken()
       if (token) {
         const res = await fetch('/api/contacts', { headers: { Authorization: `Bearer ${token}` } })
         if (res.ok) {
           const json = await res.json()
           contacts = json.contacts ?? []
+        } else {
+          console.error('[fetchContacts]', res.status, await res.text())
         }
       }
     }
 
     if (contacts) {
       setProfiles(contacts)
-      // For parents/moualimas there is exactly one contact (the admin).
-      // Auto-select it so the conversation opens immediately.
+      // Pour un parent/moualima il y a exactement un contact (l'admin).
+      // On le selectionne automatiquement pour ouvrir la conversation.
       if (currentUserRole !== 'admin' && contacts.length > 0 && !selectedUser) {
         setSelectedUser(contacts[0])
       }
