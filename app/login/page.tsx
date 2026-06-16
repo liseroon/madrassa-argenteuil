@@ -49,7 +49,7 @@ export default function LoginPage() {
     if (profile.statut === 'en_attente') {
       window.location.href = '/attente'
     } else if (profile.role === 'parent' && profile.classe_id) {
-      window.location.href = `/mur/${profile.classe_id}`
+      window.location.href = '/dashboard'
     } else {
       window.location.href = '/dashboard'
     }
