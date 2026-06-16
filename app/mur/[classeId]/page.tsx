@@ -35,6 +35,11 @@ export default function MurClassePage() {
   const classeId = params.classeId as string
   const router = useRouter()
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
+
   const [posts, setPosts] = useState<Post[]>([])
   const [comments, setComments] = useState<Record<string, Comment[]>>({})
   const [newComments, setNewComments] = useState<Record<string, string>>({})
@@ -198,12 +203,20 @@ export default function MurClassePage() {
               Mur — {classe?.nom || '...'}
             </h1>
           </div>
-          <a
-          href="/messages"
-            className="bg-[#1a3a5c] text-white px-4 py-2 rounded-full text-sm hover:bg-orange-500 transition"
-          >
-            💬 Messages
-          </a>
+          <div className="flex items-center gap-2">
+            
+              href="/messages"
+              className="bg-[#1a3a5c] text-white px-4 py-2 rounded-full text-sm hover:bg-orange-500 transition"
+            >
+              💬 Messages
+            </a>
+            <button
+              onClick={handleLogout}
+              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm hover:bg-red-500 hover:text-white transition"
+            >
+              Déconnexion
+            </button>
+          </div>
         </div>
 
         {canPost && (
