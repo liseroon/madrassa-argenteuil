@@ -107,8 +107,18 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const validerUser = async (id: string) => {
+const validerUser = async (id: string) => {
+    const { data: u } = await supabase.from('users').select('email, nom').eq('id', id).single()
     await supabase.from('users').update({ statut: 'actif' }).eq('id', id)
+    if (u?.email && u?.nom) {
+      try {
+        await fetch('/api/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: u.email, type: 'validation', nom: u.nom }),
+        })
+      } catch (e) { console.error('email validation:', e) }
+    }
     fetchUsers()
     fetchParents()
   }
