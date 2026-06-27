@@ -204,7 +204,7 @@ export default function MurClassePage() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            
+            <a
               href="/messages"
               className="bg-[#1a3a5c] text-white px-4 py-2 rounded-full text-sm hover:bg-orange-500 transition"
             >
