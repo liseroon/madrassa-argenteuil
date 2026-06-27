@@ -106,16 +106,14 @@ export default function DashboardPage() {
     checkUserAndFetch()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-const validerUser = async (id: string) => {
-    const { data: u } = await supabase.from('users').select('email, nom').eq('id', id).single()
+const validerUser = async (id: string, email: string, nom: string) => {
     await supabase.from('users').update({ statut: 'actif' }).eq('id', id)
-    if (u?.email && u?.nom) {
+    if  (email && nom) {
       try {
         await fetch('/api/email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ to: u.email, type: 'validation', nom: u.nom }),
+          body: JSON.stringify({ to: email, type: 'validation', nom: nom }),
         })
       } catch (e) { console.error('email validation:', e) }
     }
@@ -273,7 +271,7 @@ const validerUser = async (id: string) => {
                   <p className="text-xs text-gray-400">Role : {user.role}</p>
                   <div className="flex gap-2 mt-2">
                     <button
-                      onClick={() => validerUser(user.id)}
+                     onClick={() => validerUser(user.id, user.email, user.nom)}
                       className="flex-1 bg-teal-500 text-white py-2 rounded-lg text-sm hover:bg-teal-600 transition"
                     >
                       Valider
