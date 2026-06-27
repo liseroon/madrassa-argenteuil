@@ -16,8 +16,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Type invalide' }, { status: 400 })
     }
 
-    // --- Verification serveur : l'adresse doit correspondre a un user reel,
-    //     avec un statut coherent avec le type d'email demande.
+    // --- Securite : l'adresse doit correspondre a un utilisateur reel en base.
+    //     (empeche d'envoyer des emails a des adresses arbitraires)
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!url || !serviceKey) {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
     const { data: user, error: userErr } = await admin
       .from('users')
-      .select('email, statut')
+      .select('email')
       .ilike('email', to)
       .maybeSingle()
 
@@ -40,12 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Destinataire non autorise' }, { status: 403 })
     }
 
-    const expectedStatut = type === 'inscription' ? 'en_attente' : 'actif'
-    if (user.statut !== expectedStatut) {
-      return NextResponse.json({ error: 'Statut incoherent' }, { status: 403 })
-    }
-
-    // --- Construction du contenu (identique a avant) ---
+    // --- Contenu ---
     let subject = ''
     let html = ''
 
