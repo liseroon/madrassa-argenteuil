@@ -196,9 +196,11 @@ export default function MurClassePage() {
 
         <div className="flex justify-between items-center mb-6">
           <div>
-            <a href="/dashboard" className="text-xs text-gray-400 hover:text-green-600 mb-1 inline-block">
-              ← Dashboard
-            </a>
+            {isAdmin && (
+              <a href="/dashboard" className="text-xs text-gray-400 hover:text-green-600 mb-1 inline-block">
+                ← Dashboard
+              </a>
+            )}
             <h1 className="text-2xl font-bold text-green-700">
               Mur — {classe?.nom || '...'}
             </h1>
