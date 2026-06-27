@@ -30,7 +30,7 @@ export default function LoginPage() {
 
     if (!profile) {
       const meta = authData.user.user_metadata
-      const role = meta?.role || 'admin'
+      const role = meta?.role || 'parent'
       const nom = meta?.nom || authData.user.email?.split('@')[0] || 'Admin'
       const classe_id = meta?.classe_id || null
       await supabase.from('users').insert({
