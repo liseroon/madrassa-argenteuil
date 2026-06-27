@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
     if (!profile) {
       const meta = user.user_metadata
-      const role = meta?.role || 'admin'
+      const role = meta?.role || 'parent'
       const nom = meta?.nom || user.email?.split('@')[0] || 'Admin'
       await supabase.from('users').insert({
         id: user.id,
