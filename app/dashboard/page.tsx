@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [copied, setCopied] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string>('')
   const [userName, setUserName] = useState<string>('')
+  const [unreadCount, setUnreadCount] = useState(0)
   const router = useRouter()
 
   const handleLogout = async () => {
@@ -42,6 +43,17 @@ export default function DashboardPage() {
     const { data } = await supabase.from('users').select('*').eq('statut', 'en_attente')
     setUsers(data || [])
     setLoading(false)
+  }
+
+  const fetchUnread = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { count } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('destinataire_id', user.id)
+      .eq('lu', false)
+    setUnreadCount(count || 0)
   }
 
   const fetchClasses = async () => {
@@ -95,6 +107,7 @@ export default function DashboardPage() {
     if (profile.role === 'admin') {
       fetchUsers()
       fetchParents()
+      fetchUnread()
     } else {
       setLoading(false)
     }
@@ -161,6 +174,16 @@ const validerUser = async (id: string, email: string, nom: string) => {
             <p className="text-xs text-orange-300">Madrassa Argenteuil</p>
           </div>
         </div>
+        {isAdmin && (
+          <a href="/messages" className="relative text-xs text-white bg-[#1a3a5c] border border-white/30 px-3 py-2 rounded-lg hover:bg-orange-500 transition mr-2">
+            Messages
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </a>
+        )}
         <button
           onClick={handleLogout}
           className="text-xs text-white bg-red-500 px-3 py-2 rounded-lg hover:bg-red-600 transition"
