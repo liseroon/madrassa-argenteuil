@@ -43,12 +43,30 @@ export async function GET(request: Request) {
     let query = admin.from('users').select('id, nom, role').neq('id', user.id).order('nom', { ascending: true })
     if (me?.role !== 'admin') query = query.eq('role', 'admin')
 
-    const { data, error } = await query
+   const { data, error } = await query
     if (error) {
       console.error('[GET /api/contacts]', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
-    return NextResponse.json({ contacts: data ?? [] })
+
+    // Compte les messages non lus recus, groupes par expediteur.
+    const { data: unreadMsgs } = await admin
+      .from('messages')
+      .select('expediteur_id')
+      .eq('destinataire_id', user.id)
+      .eq('lu', false)
+
+    const unreadCounts: Record<string, number> = {}
+    for (const m of unreadMsgs ?? []) {
+      unreadCounts[m.expediteur_id] = (unreadCounts[m.expediteur_id] ?? 0) + 1
+    }
+
+    const contacts = (data ?? []).map(c => ({
+      ...c,
+      unread: unreadCounts[c.id] ?? 0,
+    }))
+
+    return NextResponse.json({ contacts })
   } catch (e) {
     console.error('[GET /api/contacts] uncaught:', e)
     return NextResponse.json({ error: String(e) }, { status: 500 })
