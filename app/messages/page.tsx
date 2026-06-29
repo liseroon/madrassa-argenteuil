@@ -78,7 +78,6 @@ export default function MessagesPage() {
       }
     }
   }
-
   // getUser() refreshes the token if expired; getSession() then returns the
   // fresh access_token. Using the token explicitly avoids any localStorage/
   // session-init race in createBrowserClient.
