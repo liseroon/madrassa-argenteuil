@@ -41,6 +41,14 @@ export async function GET(request: Request) {
       console.error('[GET /api/messages] query error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // Marque comme lus les messages recus de cette personne (non lus uniquement).
+    await admin
+      .from('messages')
+      .update({ lu: true })
+      .eq('destinataire_id', user.id)
+      .eq('expediteur_id', otherId)
+      .eq('lu', false)
     return NextResponse.json({ messages: data ?? [] })
   } catch (e) {
     console.error('[GET /api/messages] uncaught:', e)
