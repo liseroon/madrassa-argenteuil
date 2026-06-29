@@ -56,28 +56,17 @@ export default function MessagesPage() {
   async function fetchContacts(currentUserId: string, currentUserRole: string) {
     let contacts: Profile[] | null = null
 
-    if (currentUserRole === 'admin') {
-      // L'admin peut lire toute la table users (autorise par le RLS).
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, nom, role')
-        .neq('id', currentUserId)
-        .order('nom', { ascending: true })
-      if (!error) contacts = data ?? []
-    } else {
-      // Les parents/moualimas n'ont PAS le droit de lire la table users
-      // (le RLS renvoie un tableau vide, pas une erreur). On passe donc
-      // toujours par la route serveur qui utilise la cle service-role.
-      const token = await freshToken()
-      if (token) {
-        const res = await fetch('/api/contacts', { headers: { Authorization: `Bearer ${token}` } })
-        if (res.ok) {
-          const json = await res.json()
-          contacts = json.contacts ?? []
-        } else {
-          console.error('[fetchContacts]', res.status, await res.text())
-        }
+   // Tous les rôles passent par /api/contacts (qui calcule unread)
+    const token = await freshToken()
+    if (token) {
+      const res = await fetch('/api/contacts', { headers: { Authorization: `Bearer ${token}` } })
+      if (res.ok) {
+        const json = await res.json()
+        contacts = json.contacts ?? []
+      } else {
+        console.error('[fetchContacts]', res.status, await res.text())
       }
+    }
     }
 
     if (contacts) {
