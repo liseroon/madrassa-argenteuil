@@ -56,7 +56,7 @@ export default function MessagesPage() {
   async function fetchContacts(currentUserId: string, currentUserRole: string) {
     let contacts: Profile[] | null = null
 
-   // Tous les rôles passent par /api/contacts (qui calcule unread)
+    // Tous les rôles passent par /api/contacts (qui calcule unread)
     const token = await freshToken()
     if (token) {
       const res = await fetch('/api/contacts', { headers: { Authorization: `Bearer ${token}` } })
@@ -66,7 +66,6 @@ export default function MessagesPage() {
       } else {
         console.error('[fetchContacts]', res.status, await res.text())
       }
-    }
     }
 
     if (contacts) {
@@ -78,6 +77,7 @@ export default function MessagesPage() {
       }
     }
   }
+
   // getUser() refreshes the token if expired; getSession() then returns the
   // fresh access_token. Using the token explicitly avoids any localStorage/
   // session-init race in createBrowserClient.
@@ -123,21 +123,21 @@ export default function MessagesPage() {
         <h2 className="text-lg font-bold text-green-700 mb-4">Messages</h2>
         <div className="space-y-2">
           {profiles.map(profile => (
-           <button
-                key={profile.id}
-                onClick={() => setSelectedUser(profile)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between ${selectedUser?.id === profile.id ? 'bg-green-100 text-green-700 font-semibold' : 'hover:bg-gray-100'}`}
-              >
-                <div>
-                  <p className="font-medium">{profile.nom}</p>
-                  <p className="text-xs text-gray-400">{profile.role}</p>
-                </div>
-                {(profile.unread ?? 0) > 0 && (
-                  <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center ml-2">
-                    {profile.unread}
-                  </span>
-                )}
-              </button>
+            <button
+              key={profile.id}
+              onClick={() => setSelectedUser(profile)}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between ${selectedUser?.id === profile.id ? 'bg-green-100 text-green-700 font-semibold' : 'hover:bg-gray-100'}`}
+            >
+              <div>
+                <p className="font-medium">{profile.nom}</p>
+                <p className="text-xs text-gray-400">{profile.role}</p>
+              </div>
+              {(profile.unread ?? 0) > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center ml-2">
+                  {profile.unread}
+                </span>
+              )}
+            </button>
           ))}
         </div>
       </div>
