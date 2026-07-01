@@ -104,13 +104,14 @@ export default function DashboardPage() {
 
     fetchClasses()
 
-    if (profile.role === 'admin') {
+  if (profile.role === 'admin') {
       fetchUsers()
       fetchParents()
       fetchUnread()
     } else {
+      fetchUnread()
       setLoading(false)
-    }
+    } 
   }
 
   useEffect(() => {
@@ -174,7 +175,6 @@ const validerUser = async (id: string, email: string, nom: string) => {
             <p className="text-xs text-orange-300">Madrassa Argenteuil</p>
           </div>
         </div>
-        {isAdmin && (
           <a href="/messages" className="relative text-xs text-white bg-[#1a3a5c] border border-white/30 px-3 py-2 rounded-lg hover:bg-orange-500 transition mr-2">
             Messages
             {unreadCount > 0 && (
@@ -183,7 +183,6 @@ const validerUser = async (id: string, email: string, nom: string) => {
               </span>
             )}
           </a>
-        )}
         <button
           onClick={handleLogout}
           className="text-xs text-white bg-red-500 px-3 py-2 rounded-lg hover:bg-red-600 transition"
